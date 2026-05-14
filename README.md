@@ -1,14 +1,14 @@
-# 🍁 Canadian Investment Optimizer
+# 🍁 CAD Accounts Maxxing
 
-A Flask web app that helps Canadians figure out the best account placement for their investments to maximize after-tax retirement wealth.
+A Flask web app that helps figure out the best account placement for investments to maximize after-tax retirement wealth - scoped to Canadian accounts, tax rates and rules.
 
 ## What it does
 
 You tell it what you own and how much. It tells you where to put it (TFSA, RRSP, FHSA, Non-Registered, Real Estate) and projects your after-tax portfolio value over time.
 
 Key rules it enforces:
-- **TFSA** lifetime room calculated from your age using CRA annual limits (2009–2025)
-- **RRSP** room = 18% of income (max $32,490 for 2025) + any carryforward from prior years
+- **TFSA** lifetime room calculated from your age using CRA annual limits (2009–2026)
+- **RRSP** room = 18% of income (max $32,490 for 2026) + any carryforward from prior years
 - **FHSA** $8,000/year, $40,000 lifetime — unlocked when you check "First-Time Homebuyer"
 - **Non-Registered** capital gains taxed at 50% inclusion rate at your combined federal + provincial marginal rate
 - **RRSP** withdrawals taxed as income in retirement (assumed lower bracket)
@@ -82,34 +82,6 @@ http://localhost:5050
    - Place all unallocated holdings into optimal accounts
    - Project your after-tax portfolio value year by year
    - Show a growth chart, recommendations table, and personalized insights
-
----
-
-## Default expected returns
-
-| Asset Type | Default | Notes |
-|---|---|---|
-| ETF | 7.0% | Broad equity ETF (e.g. XEQT, VEQT) |
-| Stock | 8.0% | Individual equities |
-| Bond | 3.5% | Bond ETF or individual bonds |
-| GIC | 4.0% | Guaranteed Investment Certificate |
-| HISA | 2.5% | High-Interest Savings Account |
-| Cash | 0.5% | Chequing / savings |
-| Crypto | 15.0% | Highly speculative |
-| Real Estate | 5.0% | Annual appreciation |
-
-All sliders are adjustable (0–25%).
-
----
-
-## File structure
-
-```
-cad-accounts-maxxing/
-├── app.py              # Flask backend — tax rules, optimization, projection logic
-└── templates/
-    └── index.html      # Single-page UI — Bootstrap 5, SortableJS drag-and-drop, Chart.js
-```
 
 ---
 
