@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canadian Investment Optimizer</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --tfsa:   #2563eb; --tfsa-bg:   #eff6ff; --tfsa-border:   #93c5fd;
+  --rrsp:   #16a34a; --rrsp-bg:   #f0fdf4; --rrsp-border:   #86efac;
+  --fhsa:   #ea580c; --fhsa-bg:   #fff7ed; --fhsa-border:   #fdba74;
+  --hisa:   #0891b2; --hisa-bg:   #ecfeff; --hisa-border:   #67e8f9;
+  --nonreg: #6b7280; --nonreg-bg: #f9fafb; --nonreg-border: #d1d5db;
+  --reale:  #92400e; --reale-bg:  #fefce8; --reale-border:  #fcd34d;
+  --unalloc:#7c3aed; --unalloc-bg:#faf5ff; --unalloc-border:#c4b5fd;
+}
+
+* { box-sizing: border-box; }
+body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; color: #1e293b; }
+
+.navbar { background: linear-gradient(135deg, #1e3a5f 0%, #0f2027 100%); }
+.navbar-brand { font-weight: 800; font-size: 1.3rem; letter-spacing: -0.3px; }
+.maple-leaf { color: #e4003a; }
+
+.card-section {
+  background: white; border-radius: 16px; padding: 24px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.07); margin-bottom: 20px;
+}
+.section-heading {
+  font-size: 1.05rem; font-weight: 700; margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.step-num {
+  background: #1e3a5f; color: white; border-radius: 50%;
+  width: 28px; height: 28px; display: flex; align-items: center;
+  justify-content: center; font-size: .8rem; font-weight: 700; flex-shrink: 0;
+}
+
+/* ── Contribution tracker boxes ────────────────── */
+.contrib-box {
+  border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; height: 100%;
+}
+.contrib-box .contrib-question {
+  font-size: .78rem; color: #64748b; margin-bottom: 6px;
+}
+.contrib-box .contrib-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.contrib-box .contrib-title { font-weight: 700; font-size: .95rem; }
+.contrib-meta { display: flex; justify-content: space-between; margin-top: 10px; font-size: .72rem; }
+.contrib-avail { font-weight: 700; }
+.contrib-pct { font-size: .68rem; color: #94a3b8; text-align: right; margin-top: 2px; }
+.section-divider {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .7px; color: #94a3b8; margin-bottom: 10px; margin-top: 4px;
+}
+
+/* ── Account zones ──────────────────────────────── */
+.account-zone {
+  min-height: 110px; border: 2px dashed #cbd5e1;
+  border-radius: 12px; padding: 10px; transition: border-color .2s, background .2s;
+}
+.zone-tfsa       { border-color: var(--tfsa-border);   background: var(--tfsa-bg); }
+.zone-rrsp       { border-color: var(--rrsp-border);   background: var(--rrsp-bg); }
+.zone-fhsa       { border-color: var(--fhsa-border);   background: var(--fhsa-bg); }
+.zone-hisa       { border-color: var(--hisa-border);   background: var(--hisa-bg); }
+.zone-nonreg     { border-color: var(--nonreg-border); background: var(--nonreg-bg); }
+.zone-realestate { border-color: var(--reale-border);  background: var(--reale-bg); }
+.zone-unallocated{ border-color: var(--unalloc-border);background: var(--unalloc-bg); }
+.account-zone.drag-highlight { border-style: solid; filter: brightness(.97); }
+
+.zone-label {
+  font-size: .75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.zone-label .acct-name { display: flex; align-items: center; gap: 6px; }
+.zone-total { font-size: .78rem; color: #64748b; margin-top: 8px;
+  padding-top: 6px; border-top: 1px dashed #e2e8f0; }
+.room-pill {
+  font-size: .68rem; padding: 1px 7px; border-radius: 20px; font-weight: 600; white-space: nowrap;
+}
+.room-tfsa       { background: var(--tfsa-bg);    color: var(--tfsa); }
+.room-rrsp       { background: var(--rrsp-bg);    color: var(--rrsp); }
+.room-fhsa       { background: var(--fhsa-bg);    color: var(--fhsa); }
+.room-hisa       { background: var(--hisa-bg);    color: var(--hisa); }
+.room-nonreg     { background: var(--nonreg-bg);  color: var(--nonreg); }
+.room-realestate { background: var(--reale-bg);   color: var(--reale); }
+.room-unallocated{ background: var(--unalloc-bg); color: var(--unalloc); }
+
+/* ── Holding cards ──────────────────────────────── */
+.h-card {
+  background: white; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  padding: 9px 11px; margin-bottom: 7px; cursor: grab;
+  user-select: none; transition: box-shadow .15s, transform .15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.h-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,.1); }
+.h-card:active { cursor: grabbing; }
+.h-card.recommended { border-left: 4px solid #10b981; }
+.sortable-ghost { opacity: .35; }
+.sortable-drag { box-shadow: 0 10px 40px rgba(0,0,0,.2) !important; transform: rotate(1deg); }
+.h-icon { font-size: 1.4rem; width: 32px; text-align: center; flex-shrink: 0; }
+.h-info { flex: 1; min-width: 0; }
+.h-name { font-weight: 600; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h-meta { font-size: .72rem; color: #94a3b8; }
+.h-right { text-align: right; flex-shrink: 0; }
+.h-value { font-weight: 700; font-size: .9rem; }
+.h-ret { font-size: .72rem; color: #10b981; }
+.h-del { background: none; border: none; color: #cbd5e1; padding: 0; font-size: .95rem; cursor: pointer; }
+.h-del:hover { color: #ef4444; }
+
+/* ── Sliders ─────────────────────────────────── */
+input[type=range] { accent-color: #2563eb; }
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider-val { font-weight: 700; font-size: .9rem; min-width: 46px; text-align: right; color: #2563eb; }
+
+/* ── Misc ────────────────────────────────────── */
+.info-btn { background: none; border: none; color: #94a3b8; padding: 0 3px; cursor: pointer; font-size: .9rem; }
+.info-btn:hover { color: #2563eb; }
+.stat-box { background: #f8fafc; border-radius: 12px; padding: 16px; text-align: center; }
+.stat-value { font-size: 1.7rem; font-weight: 800; color: #1e3a5f; }
+.stat-label { font-size: .75rem; color: #64748b; margin-top: 2px; }
+.stat-up { color: #16a34a; }
+.stat-highlight { background: linear-gradient(135deg, #eff6ff, #f0fdf4); border: 1px solid #bfdbfe; }
+.calc-btn {
+  background: linear-gradient(135deg, #1e3a5f, #2563eb);
+  border: none; color: white; font-size: 1.1rem; font-weight: 700;
+  padding: 14px 44px; border-radius: 12px; letter-spacing: .4px;
+  transition: opacity .2s, transform .1s; cursor: pointer;
+}
+.calc-btn:hover { opacity: .92; transform: translateY(-1px); }
+.calc-btn:active { transform: translateY(0); }
+
+.rec-row-tfsa       { border-left: 4px solid var(--tfsa); }
+.rec-row-rrsp       { border-left: 4px solid var(--rrsp); }
+.rec-row-fhsa       { border-left: 4px solid var(--fhsa); }
+.rec-row-hisa       { border-left: 4px solid var(--hisa); }
+.rec-row-nonreg     { border-left: 4px solid var(--nonreg); }
+.rec-row-realestate { border-left: 4px solid var(--reale); }
+.acct-badge { font-size: .72rem; padding: 2px 9px; border-radius: 20px; font-weight: 600; }
+.badge-tfsa        { background: var(--tfsa-bg);   color: var(--tfsa); }
+.badge-rrsp        { background: var(--rrsp-bg);   color: var(--rrsp); }
+.badge-fhsa        { background: var(--fhsa-bg);   color: var(--fhsa); }
+.badge-hisa        { background: var(--hisa-bg);   color: var(--hisa); }
+.badge-nonreg      { background: var(--nonreg-bg); color: var(--nonreg); }
+.badge-realestate  { background: var(--reale-bg);  color: var(--reale); }
+
+#results { display: none; animation: slideUp .35s ease; }
+@keyframes slideUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
+.tooltip-inner { max-width: 300px; text-align: left; font-size: .8rem; }
+.empty-zone { color: #94a3b8; font-size: .8rem; text-align: center; padding: 12px 0; }
+#years-val { font-size: 1.5rem; font-weight: 800; color: #2563eb; }
+
+.zone-add-btn {
+  background: none; border: 1.5px solid currentColor; border-radius: 50%;
+  width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0; opacity: 0.55; transition: opacity .15s, transform .15s;
+  flex-shrink: 0; color: inherit;
+}
+.zone-add-btn:hover { opacity: 1; transform: scale(1.12); }
+.zone-add-btn i { font-size: .75rem; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar navbar-dark px-4 py-3">
+  <span class="navbar-brand"><span class="maple-leaf">🍁</span> Canadian Investment Optimizer</span>
+  <span class="text-white-50 small">Maximize your after-tax retirement wealth</span>
+</nav>
+
+<div class="container-xl py-4">
+
+<!-- ═══════════════════════════════════════════════ STEP 1: PROFILE -->
+<div class="card-section">
+  <div class="section-heading"><span class="step-num">1</span> Your Profile</div>
+  <div class="row g-3">
+
+    <!-- Basic info row -->
+    <div class="col-md-3 col-6">
+      <label class="form-label fw-semibold small">Age</label>
+      <input type="number" id="age" class="form-control" min="18" max="71" value="30"
+        oninput="updateTfsaRoom(); updateRrspRoom(); updateYearsLabel(); if(document.getElementById('tfsaMaxed')?.checked) handleTfsaMaxed(document.getElementById('tfsaMaxed'), true);">
+    </div>
+    <div class="col-md-3 col-6">
+      <label class="form-label fw-semibold small">Annual Salary ($)</label>
+      <input type="number" id="salary" class="form-control" min="0" value="80000"
+        oninput="updateRrspRoom(); updateTakeHome();">
+      <!-- Take-home summary -->
+      <div id="takehome-summary" class="mt-1" style="display:none">
+        <div class="d-flex align-items-center gap-2" style="font-size:.78rem">
+          <span class="text-muted">After-tax take-home:</span>
+          <span class="fw-bold text-success" id="takehome-monthly-label">—</span>
+          <button class="btn btn-link p-0 ms-auto" style="font-size:.72rem; line-height:1"
+            type="button" data-bs-toggle="collapse" data-bs-target="#takehome-detail">
+            breakdown <i class="bi bi-chevron-down" style="font-size:.6rem"></i>
+          </button>
+        </div>
+        <div class="collapse" id="takehome-detail">
+          <div class="border rounded-2 p-2 mt-1" style="background:#f8fafc; font-size:.75rem">
+            <div id="takehome-rows"></div>
+            <div class="border-top mt-1 pt-1 fw-bold d-flex justify-content-between">
+              <span>Net take-home</span>
+              <span class="text-success" id="takehome-net-label">—</span>
+            </div>
+            <div class="text-muted mt-1" style="font-size:.68rem" id="takehome-effective-label"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <label class="form-label fw-semibold small">Province</label>
+      <select id="province" class="form-select" onchange="updateTakeHome(); updateRrspRoom();">
+        {% for p in provinces %}
+        <option value="{{ p }}" {% if p == 'ON' %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 col-6">
+      <label class="form-label fw-semibold small">
+        Buy a Home?
+        <button class="info-btn" data-bs-toggle="tooltip"
+          title="Check this if you plan to purchase a home. The home will be projected separately using the Principal Residence Exemption (tax-free appreciation). First-time buyers also unlock the FHSA.">
+          <i class="bi bi-info-circle"></i>
+        </button>
+      </label>
+      <div class="form-check mt-2">
+        <input class="form-check-input" type="checkbox" id="buyHome" onchange="toggleBuyHome()">
+        <label class="form-check-label" for="buyHome">Yes, I plan to buy a home</label>
+      </div>
+      <div id="buy-home-details" style="display:none; margin-top:.75rem">
+        <label class="form-label small fw-semibold mb-1">Home Price ($)</label>
+        <input type="number" id="homePrice" class="form-control form-control-sm" placeholder="e.g. 650000" min="0">
+        <div class="d-flex align-items-center gap-2 mt-2">
+          <label class="form-label small mb-0 text-nowrap">Appreciation</label>
+          <input type="range" id="homeAppreciation" class="form-range" min="0" max="15" step="0.5" value="5"
+            oninput="document.getElementById('homeApprVal').textContent = this.value + '%'">
+          <span id="homeApprVal" class="small text-muted text-nowrap">5%</span>
+        </div>
+        <div class="form-check mt-1">
+          <input class="form-check-input" type="checkbox" id="firstTimeBuyer" onchange="updateFhsaVisibility()" checked>
+          <label class="form-check-label small" for="firstTimeBuyer">First-time buyer (unlocks FHSA)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contribution trackers -->
+    <div class="col-12 mt-1">
+      <div class="section-divider">How much have you put into your registered accounts?</div>
+      <div class="row g-3">
+
+        <!-- TFSA -->
+        <div class="col-md-4">
+          <div class="contrib-box" style="background: var(--tfsa-bg)">
+            <div class="contrib-header">
+              <span style="font-size:1.2rem">🛡️</span>
+              <span class="contrib-title">TFSA</span>
+              <button class="info-btn ms-auto" data-bs-toggle="tooltip"
+                title="Tax-Free Savings Account: ALL growth and withdrawals are 100% tax-free. Room accumulates each year you are 18+, starting 2009. The lifetime limit depends on your age. Contributions are NOT tax-deductible.">
+                <i class="bi bi-info-circle"></i>
+              </button>
+            </div>
+            <div class="contrib-question">How much have you contributed to your TFSA in total?</div>
+            <input type="number" id="existingTfsa" class="form-control form-control-sm" value="0" min="0" oninput="updateTfsaRoom()">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="tfsaMaxed" onchange="handleTfsaMaxed(this)">
+              <label class="form-check-label text-muted" for="tfsaMaxed" style="font-size:.75rem">
+                I've maxed it out every year I've been eligible
+              </label>
+            </div>
+            <div class="contrib-meta mt-2">
+              <span class="text-muted" id="tfsa-lifetime-label">Lifetime room: —</span>
+              <span class="contrib-avail" style="color: var(--tfsa)" id="tfsa-avail-label">Available: —</span>
+            </div>
+            <div class="progress mt-1" style="height: 6px; border-radius: 4px; background: #dbeafe">
+              <div class="progress-bar" id="tfsa-bar" style="width:0%; background: var(--tfsa); border-radius: 4px; transition: width .4s"></div>
+            </div>
+            <div class="contrib-pct" id="tfsa-pct">0% used</div>
+          </div>
+        </div>
+
+        <!-- RRSP -->
+        <div class="col-md-4">
+          <div class="contrib-box" style="background: var(--rrsp-bg)">
+            <div class="contrib-header">
+              <span style="font-size:1.2rem">🐷</span>
+              <span class="contrib-title">RRSP</span>
+              <button class="info-btn ms-auto" data-bs-toggle="tooltip"
+                title="Registered Retirement Savings Plan: contributions reduce your taxable income dollar-for-dollar. Growth is tax-deferred. Withdrawals are taxed as income in retirement (usually at a lower rate). Room = 18% of prior year income, max $32,490 (2025), plus unused room from prior years. Must convert to RRIF by age 71.">
+                <i class="bi bi-info-circle"></i>
+              </button>
+            </div>
+            <div class="contrib-question">How much have you contributed to your RRSP in total (lifetime)?</div>
+            <input type="number" id="existingRrsp" class="form-control form-control-sm" value="0" min="0" oninput="updateRrspRoom()">
+            <div class="contrib-meta mt-2">
+              <span class="text-muted small" id="rrsp-lifetime-label">Estimated room: —</span>
+              <span class="contrib-avail" style="color: var(--rrsp)" id="rrsp-avail-label">Available: —</span>
+            </div>
+            <div class="progress mt-1" style="height: 6px; border-radius: 4px; background: #dcfce7">
+              <div class="progress-bar" id="rrsp-bar" style="width:0%; background: var(--rrsp); border-radius: 4px; transition: width .4s"></div>
+            </div>
+            <div class="contrib-pct" id="rrsp-pct">0% used</div>
+            <!-- Optional override -->
+            <details class="mt-2">
+              <summary style="font-size:.72rem; color:#64748b; cursor:pointer">
+                I know my exact available room from CRA <i class="bi bi-chevron-down" style="font-size:.6rem"></i>
+              </summary>
+              <div class="mt-1" style="font-size:.72rem; color:#64748b">
+                Enter your RRSP deduction limit from your Notice of Assessment or CRA MyAccount. This will override the estimate above.
+              </div>
+              <input type="number" id="rrspKnownRoom" class="form-control form-control-sm mt-1"
+                placeholder="e.g. 45000" min="0" oninput="updateRrspRoom()">
+            </details>
+          </div>
+        </div>
+
+        <!-- FHSA (hidden until first-time buyer checked) -->
+        <div class="col-md-4" id="fhsa-section">
+          <div class="contrib-box" style="background: var(--fhsa-bg)">
+            <div class="contrib-header">
+              <span style="font-size:1.2rem">🏡</span>
+              <span class="contrib-title">FHSA</span>
+              <button class="info-btn ms-auto" data-bs-toggle="tooltip"
+                title="First Home Savings Account: $8,000/year, $40,000 lifetime. Contributions are tax-deductible and qualifying home purchase withdrawals are tax-free. If you never buy a home, you must transfer the balance to your RRSP/RRIF (tax-deferred) or withdraw it as taxable income by the earlier of: 15 years after opening, or Dec 31 of the year you turn 71.">
+                <i class="bi bi-info-circle"></i>
+              </button>
+            </div>
+            <div class="contrib-question">How much have you contributed to your FHSA?</div>
+            <input type="number" id="existingFhsa" class="form-control form-control-sm" value="0" min="0" oninput="updateFhsaRoom()">
+            <div class="contrib-meta mt-2">
+              <span class="text-muted">Lifetime max: $40,000</span>
+              <span class="contrib-avail" style="color: var(--fhsa)" id="fhsa-avail-label">Available: $40,000</span>
+            </div>
+            <div class="progress mt-1" style="height: 6px; border-radius: 4px; background: #fed7aa">
+              <div class="progress-bar" id="fhsa-bar" style="width:0%; background: var(--fhsa); border-radius: 4px; transition: width .4s"></div>
+            </div>
+            <div class="contrib-pct" id="fhsa-pct">0% used</div>
+            <details class="mt-2">
+              <summary style="font-size:.72rem; color:#64748b; cursor:pointer">
+                I know my exact available room from CRA <i class="bi bi-chevron-down" style="font-size:.6rem"></i>
+              </summary>
+              <input type="number" id="fhsaKnownRoom" class="form-control form-control-sm mt-1"
+                placeholder="e.g. 32000" min="0" oninput="updateFhsaRoom()">
+            </details>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Years slider -->
+    <div class="col-12">
+      <label class="form-label fw-semibold small">Years to Retirement</label>
+      <div class="slider-row">
+        <input type="range" class="form-range flex-grow-1" id="years" min="5" max="50" value="25"
+          oninput="updateYearsLabel()">
+        <div style="text-align:right; flex-shrink:0">
+          <span id="years-val">25 yrs</span>
+          <div id="retire-age-label" style="font-size:1.5rem; font-weight:800; color:#94a3b8; line-height:1"></div>
+        </div>
+      </div>
+      <!-- Inflation rate -->
+      <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+        <label class="form-label small fw-semibold mb-0">
+          Inflation rate (all projections shown in today's dollars)
+          <button class="info-btn ms-1" data-bs-toggle="tooltip"
+            title="All projected values are deflated to today's purchasing power. A 7% nominal return with 2% inflation gives a ~5% real return. Adjust if you expect higher or lower long-run inflation.">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </label>
+        <select id="inflationRate" class="form-select form-select-sm" style="width:auto">
+          <option value="0.01">1% — low inflation</option>
+          <option value="0.02" selected>2% — Bank of Canada target (default)</option>
+          <option value="0.03">3% — moderate inflation</option>
+          <option value="0.04">4% — elevated inflation</option>
+        </select>
+      </div>
+      <!-- Retirement marginal tax rate -->
+      <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+        <label class="form-label small fw-semibold mb-0">
+          Expected marginal tax rate in retirement
+          <button class="info-btn ms-1" data-bs-toggle="tooltip"
+            title="Your combined federal + provincial marginal rate when you're drawing down in retirement. RRSP withdrawals are taxed at this rate. If your retirement income is lower than today, RRSP is more valuable. If similar or higher, TFSA wins. Auto-estimate assumes about 12% lower than your current rate.">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </label>
+        <select id="retirementMarginalRate" class="form-select form-select-sm" style="width:auto">
+          <option value="">Auto-estimate (current rate − 12%)</option>
+          <option value="0.20">~20% — low income (e.g. OAS + small RRIF)</option>
+          <option value="0.26">~26% — moderate income (~$50–70k/yr)</option>
+          <option value="0.33">~33% — moderate-high (~$80–110k/yr)</option>
+          <option value="0.40">~40% — high income (~$120–150k/yr)</option>
+          <option value="0.47">~47% — very high income ($150k+/yr)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ ANNUAL SAVINGS PLAN -->
+<div class="card-section">
+  <div class="section-heading">
+    <span class="step-num">2</span>
+    Annual Savings Plan
+    <button class="info-btn ms-2" data-bs-toggle="tooltip"
+      title="Model ongoing annual contributions on top of your existing holdings. The optimizer compares putting the remainder (after TFSA) into RRSP vs Non-Registered and shows which grows more in today's dollars at retirement.">
+      <i class="bi bi-info-circle"></i>
+    </button>
+  </div>
+  <div class="row g-3 align-items-start">
+    <div class="col-md-5">
+      <label class="form-label small fw-semibold">
+        % of after-tax income to invest each year
+      </label>
+      <div class="slider-row">
+        <input type="range" class="form-range flex-grow-1" id="investPct" min="0" max="60" step="5" value="0"
+          oninput="updateAnnualInvest()">
+        <span id="investPct-val" class="text-nowrap">0%</span>
+      </div>
+      <div class="text-muted small mt-1">
+        ≈ <strong id="annual-invest-amt">—</strong> / year
+        <span class="ms-2 text-muted" id="annual-invest-note"></span>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold d-block mb-2">Contribution priorities</label>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="maxTfsaAnnually" checked>
+        <label class="form-check-label small" for="maxTfsaAnnually">
+          Always fill TFSA first (~$7,000/yr)
+        </label>
+      </div>
+    </div>
+    <div class="col-md-3 text-muted small" style="padding-top:1.8rem">
+      Remainder split shown in the <strong>Strategy Comparison</strong> after you optimize.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ STEP 3: HOLDINGS -->
+<div class="card-section">
+  <div class="section-heading">
+    <span class="step-num">3</span>
+    Your Holdings
+  </div>
+  <p class="text-muted small mb-3">
+    Tell us about your current holdings — click <strong>+</strong> in the account where the asset already lives, or use <strong>Let Optimizer Decide</strong> if you're not sure where to put it.
+  </p>
+
+  <div class="row g-3">
+
+    <!-- TFSA -->
+    <div class="col-md-6">
+      <div class="zone-label" style="color: var(--tfsa)">
+        <span class="acct-name">
+          <i class="bi bi-shield-check"></i> TFSA
+          <button class="info-btn" data-bs-toggle="tooltip"
+            title="Tax-Free Savings Account: contributions are NOT deductible, but ALL growth and withdrawals are 100% tax-free forever. Best for highest-growth assets. Room accumulates each year you're 18+.">
+            <i class="bi bi-info-circle"></i></button>
+        </span>
+        <span class="room-pill room-tfsa" id="tfsa-room-pill">Room: calculating…</span>
+        <button class="zone-add-btn" onclick="openAddModal('zone-tfsa')" title="Add to TFSA">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="account-zone zone-tfsa" id="zone-tfsa">
+        <div class="empty-zone">Tax-free growth — best for high-return assets</div>
+      </div>
+      <div class="zone-total" id="tfsa-total">Total in TFSA: $0</div>
+    </div>
+
+    <!-- RRSP -->
+    <div class="col-md-6">
+      <div class="zone-label" style="color: var(--rrsp)">
+        <span class="acct-name">
+          <i class="bi bi-piggy-bank"></i> RRSP
+          <button class="info-btn" data-bs-toggle="tooltip"
+            title="Registered Retirement Savings Plan: contributions reduce your taxable income now, growth is tax-deferred, withdrawals taxed as income. Best if you expect a lower tax rate in retirement. Convert to RRIF at age 71.">
+            <i class="bi bi-info-circle"></i></button>
+        </span>
+        <span class="room-pill room-rrsp" id="rrsp-room-pill">Room: calculating…</span>
+        <button class="zone-add-btn" onclick="openAddModal('zone-rrsp')" title="Add to RRSP">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="account-zone zone-rrsp" id="zone-rrsp">
+        <div class="empty-zone">Tax-deferred — contributions reduce taxable income</div>
+      </div>
+      <div class="zone-total" id="rrsp-total">Total in RRSP: $0</div>
+    </div>
+
+    <!-- FHSA -->
+    <div class="col-md-6" id="fhsa-zone-col" style="display:none">
+      <div class="zone-label" style="color: var(--fhsa)">
+        <span class="acct-name">
+          <i class="bi bi-house-heart"></i> FHSA
+          <button class="info-btn" data-bs-toggle="tooltip"
+            title="First Home Savings Account: $8,000/year, $40,000 lifetime. Tax-deductible contributions + tax-free qualifying home withdrawal. Best of both RRSP and TFSA.">
+            <i class="bi bi-info-circle"></i></button>
+        </span>
+        <span class="room-pill room-fhsa" id="fhsa-room-pill">Room: $0</span>
+        <button class="zone-add-btn" onclick="openAddModal('zone-fhsa')" title="Add to FHSA">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="account-zone zone-fhsa" id="zone-fhsa">
+        <div class="empty-zone">Tax-deductible + tax-free home purchase withdrawal</div>
+      </div>
+      <div class="zone-total" id="fhsa-total">Total in FHSA: $0</div>
+    </div>
+
+    <!-- HISA / Savings -->
+    <div class="col-md-6">
+      <div class="zone-label" style="color: var(--hisa)">
+        <span class="acct-name">
+          <i class="bi bi-bank"></i> HISA / Savings
+          <button class="info-btn" data-bs-toggle="tooltip"
+            title="A standalone High-Interest Savings Account held outside a registered account. Interest income is fully taxed at your marginal rate each year.">
+            <i class="bi bi-info-circle"></i></button>
+        </span>
+        <span class="room-pill room-hisa">No limit</span>
+        <button class="zone-add-btn" onclick="openAddModal('zone-hisa')" title="Add to HISA">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="account-zone zone-hisa" id="zone-hisa">
+        <div class="empty-zone">Emergency fund or short-term savings</div>
+      </div>
+      <div class="zone-total" id="hisa-total">Total in HISA: $0</div>
+    </div>
+
+    <!-- Non-Registered -->
+    <div class="col-md-6">
+      <div class="zone-label" style="color: var(--nonreg)">
+        <span class="acct-name">
+          <i class="bi bi-briefcase"></i> Non-Registered
+          <button class="info-btn" data-bs-toggle="tooltip"
+            title="Taxable brokerage account: no contribution limits. Capital gains taxed at 50% inclusion rate. Best for overflow or tax-efficient assets like Canadian dividend stocks.">
+            <i class="bi bi-info-circle"></i></button>
+        </span>
+        <span class="room-pill room-nonreg">No limit</span>
+        <button class="zone-add-btn" onclick="openAddModal('zone-nonreg')" title="Add to Non-Reg">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="account-zone zone-nonreg" id="zone-nonreg">
+        <div class="empty-zone">Overflow — 50% cap gains inclusion rate</div>
+      </div>
+      <div class="zone-total" id="nonreg-total">Total in Non-Reg: $0</div>
+    </div>
+
+    <!-- Unallocated — optimizer decides -->
+    <div class="col-md-6">
+      <div class="zone-label" style="color: var(--unalloc)">
+        <span class="acct-name"><i class="bi bi-stars"></i> Let Optimizer Decide</span>
+        <button class="zone-add-btn" onclick="openAddModal('zone-unallocated')" title="Add for optimizer to place">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="account-zone zone-unallocated" id="zone-unallocated">
+        <div class="empty-zone" id="unalloc-empty">Optimizer will find the best account</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ CALCULATE -->
+<div class="text-center mb-4">
+  <button class="calc-btn" onclick="calculate()">
+    <i class="bi bi-calculator me-2"></i>Optimize My Portfolio
+  </button>
+  <p class="text-muted small mt-2">Locked holdings stay put. Unallocated holdings will be optimally placed.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════ RESULTS -->
+<div id="calc-warnings" style="display:none"></div>
+<div id="results">
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+      <div class="stat-box">
+        <div class="stat-value" id="res-total">—</div>
+        <div class="stat-label">Current Portfolio Value</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stat-box stat-highlight">
+        <div class="stat-value stat-up" id="res-projected">—</div>
+        <div class="stat-label">Projected After-Tax Value</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stat-box">
+        <div class="stat-value" id="res-marginal">—</div>
+        <div class="stat-label">Your Marginal Tax Rate</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stat-box">
+        <div class="stat-value stat-up" id="res-taxsaved">—</div>
+        <div class="stat-label">RRSP Tax Refund (this year)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategy comparison (shown only when annual contributions are set) -->
+  <div class="card-section mb-3" id="strategy-comparison" style="display:none">
+    <div class="section-heading"><i class="bi bi-bar-chart-steps me-2"></i>Annual Contribution Strategy Comparison</div>
+    <p class="text-muted small mb-3" id="strategy-subtitle"></p>
+    <div class="row g-3" id="strategy-cards"></div>
+    <p id="strategy-note" class="text-muted small mt-3 mb-0" style="border-top:1px solid #e2e8f0; padding-top:.75rem"></p>
+  </div>
+
+  <div class="card-section mb-4">
+    <div class="section-heading"><i class="bi bi-graph-up me-2"></i>Portfolio Growth Projection
+      <span class="text-muted small fw-normal ms-2" id="chart-strategy-label"></span>
+    </div>
+    <canvas id="growthChart" height="90"></canvas>
+  </div>
+
+  <div class="card-section">
+    <div class="section-heading"><i class="bi bi-list-check me-2"></i>Recommended Allocation</div>
+    <p class="text-muted small">
+      <span class="badge bg-success me-1">Recommended</span> placed by the optimizer.
+      <span class="badge bg-warning text-dark me-1">Locked</span> placed by you, left unchanged.
+    </p>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr><th>Holding</th><th>Type</th><th class="text-end">Value</th><th>Return</th><th>Account</th></tr>
+        </thead>
+        <tbody id="rec-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card-section">
+    <div class="section-heading"><i class="bi bi-pie-chart me-2"></i>Account-by-Account Breakdown (at Retirement)</div>
+    <div class="row g-3" id="acct-breakdown"></div>
+  </div>
+
+</div>
+
+</div><!-- /container -->
+
+<!-- ═══════════════════════════════════════════════ ADD HOLDING MODAL -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title fw-bold">Add Holding</h5>
+          <div id="modal-target-label" class="text-muted small mt-0"></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Name</label>
+          <input type="text" id="h-name" class="form-control" placeholder="e.g. My ETF Portfolio, Emergency Savings…">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Asset Type</label>
+          <select id="h-type" class="form-select" onchange="setDefaultReturn()">
+            <option value="ETF">ETF</option>
+            <option value="Stock">Individual Stock</option>
+            <option value="Bond">Bond</option>
+            <option value="GIC">GIC</option>
+            <option value="HISA">High-Interest Savings</option>
+            <option value="Cash">Cash</option>
+            <option value="Crypto">Crypto</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Current Value ($)</label>
+          <input type="number" id="h-value" class="form-control" min="0" placeholder="10000">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">
+            Expected Annual Return
+            <span class="text-muted fw-normal">(pre-filled with historical average)</span>
+          </label>
+          <div class="slider-row">
+            <input type="range" id="h-return" class="form-range flex-grow-1" min="0" max="25" step="0.5" value="7"
+              oninput="document.getElementById('h-return-val').textContent = this.value + '%'">
+            <span class="slider-val" id="h-return-val">7%</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted" style="font-size:.7rem">
+            <span>0% (Cash)</span><span>7% (Broad ETF)</span><span>25%</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary fw-semibold" onclick="addHolding()">
+          <i class="bi bi-plus-circle me-1"></i>Add to Portfolio
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ─────────────────────────── TFSA LIMITS (CRA) ───────────────────── */
+// Every annual TFSA limit since inception — baked in so we can calculate client-side
+const TFSA_ANNUAL_LIMITS = {
+  2009: 5000, 2010: 5000, 2011: 5000, 2012: 5000,
+  2013: 5500, 2014: 5500, 2015: 10000, 2016: 5500,
+  2017: 5500, 2018: 5500, 2019: 6000,  2020: 6000,
+  2021: 6000, 2022: 6000, 2023: 6500,  2024: 7000,
+  2025: 7000, 2026: 7000,
+};
+const CURRENT_YEAR = new Date().getFullYear();
+
+function getTfsaLifetimeRoom(age) {
+  const birthYear    = CURRENT_YEAR - age;
+  const eligibleYear = Math.max(birthYear + 18, 2009);
+  if (eligibleYear > CURRENT_YEAR) return 0;
+  return Object.entries(TFSA_ANNUAL_LIMITS)
+    .filter(([yr]) => parseInt(yr) >= eligibleYear && parseInt(yr) <= CURRENT_YEAR - 1)
+    .reduce((sum, [, v]) => sum + v, 0);
+}
+
+/* ─────────────────────────── STATE ───────────────────────────────── */
+let holdings = [];
+let holdingCounter = 0;
+let addModal;
+let growthChart = null;
+const sortables = {};
+let _targetZoneId = 'zone-unallocated';
+const ZONE_DISPLAY_NAMES = {
+  'zone-tfsa':        'TFSA',
+  'zone-rrsp':        'RRSP',
+  'zone-fhsa':        'FHSA',
+  'zone-hisa':        'HISA / Savings',
+  'zone-nonreg':      'Non-Registered',
+  'zone-unallocated': 'Let Optimizer Decide',
+};
+
+const ASSET_ICONS = {
+  ETF: '📈', Stock: '📊', Bond: '🏛️', GIC: '🔒', HISA: '💰',
+  Cash: '💵', Crypto: '₿', Other: '📦'
+};
+const ASSET_DEFAULTS = {
+  ETF: 7.0, Stock: 8.0, Bond: 3.5, GIC: 4.0, HISA: 2.5,
+  Cash: 0.0, Crypto: 15.0, Other: 5.0
+};
+const ACCT_LABELS = {
+  TFSA: 'TFSA', RRSP: 'RRSP', FHSA: 'FHSA', HISA: 'HISA / Savings', NonReg: 'Non-Registered'
+};
+
+/* ─────────────────────────── INIT ───────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  addModal = new bootstrap.Modal(document.getElementById('addModal'));
+  initSortables();
+  updateTfsaRoom();
+  updateRrspRoom();
+  updateTakeHome();
+  updateYearsLabel();
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>
+    new bootstrap.Tooltip(el, { html: true })
+  );
+});
+
+function initSortables() {
+  ['unallocated', 'tfsa', 'rrsp', 'fhsa', 'hisa', 'nonreg'].forEach(zone => {
+    const el = document.getElementById('zone-' + zone);
+    if (!el) return;
+    sortables[zone] = new Sortable(el, {
+      group: 'holdings', animation: 150,
+      ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
+      onAdd()    { updateZoneTotals(); },
+      onRemove() { updateZoneTotals(); },
+      onSort()   { updateZoneTotals(); },
+    });
+  });
+}
+
+/* ─────────────────────────── MODAL ──────────────────────────────── */
+function openAddModal(targetZoneId = 'zone-unallocated') {
+  _targetZoneId = targetZoneId;
+  const zoneName = ZONE_DISPLAY_NAMES[targetZoneId] || targetZoneId;
+  document.getElementById('modal-target-label').textContent = 'Adding to: ' + zoneName;
+  const footerBtn = document.querySelector('#addModal .modal-footer .btn-primary');
+  if (footerBtn) footerBtn.innerHTML = `<i class="bi bi-plus-circle me-1"></i>Add to ${zoneName}`;
+  document.getElementById('h-name').value = '';
+  document.getElementById('h-value').value = '';
+  document.getElementById('h-type').value = targetZoneId === 'zone-hisa' ? 'Cash' : 'ETF';
+  setDefaultReturn();
+  addModal.show();
+  setTimeout(() => document.getElementById('h-name').focus(), 300);
+}
+
+function setDefaultReturn() {
+  const def = ASSET_DEFAULTS[document.getElementById('h-type').value] || 5.0;
+  document.getElementById('h-return').value = def;
+  document.getElementById('h-return-val').textContent = def + '%';
+}
+
+/* ─────────────────────────── ADD HOLDING ────────────────────────── */
+function addHolding() {
+  const name  = document.getElementById('h-name').value.trim();
+  const type  = document.getElementById('h-type').value;
+  const value = parseFloat(document.getElementById('h-value').value);
+  const ret   = parseFloat(document.getElementById('h-return').value);
+
+  if (!name)           { alert('Please enter a name.'); return; }
+  if (!value || value <= 0) { alert('Please enter a value greater than $0.'); return; }
+
+  const id = 'h-' + (++holdingCounter);
+  const holding = { id, name, type, value, expectedReturn: ret };
+  holdings.push(holding);
+  const targetEl = document.getElementById(_targetZoneId) || document.getElementById('zone-unallocated');
+  renderHoldingCard(holding, targetEl);
+  hideEmptyMsg();
+  updateZoneTotals();
+  addModal.hide();
+}
+
+function renderHoldingCard(holding, zoneEl) {
+  const card = document.createElement('div');
+  card.className = 'h-card';
+  card.dataset.id = holding.id;
+  card.innerHTML = `
+    <span class="h-icon">${ASSET_ICONS[holding.type] || '📦'}</span>
+    <div class="h-info">
+      <div class="h-name">${escHtml(holding.name)}</div>
+      <div class="h-meta">${holding.type}</div>
+    </div>
+    <div class="h-right">
+      <div class="h-value">${fmtMoney(holding.value)}</div>
+      <div class="h-ret">▲ ${holding.expectedReturn}%/yr</div>
+    </div>
+    <button class="h-del ms-2" onclick="removeHolding('${holding.id}',this)" title="Remove">
+      <i class="bi bi-x-circle"></i>
+    </button>`;
+  zoneEl.appendChild(card);
+}
+
+function removeHolding(id, btn) {
+  btn.closest('.h-card').remove();
+  holdings = holdings.filter(h => h.id !== id);
+  hideEmptyMsg();
+  updateZoneTotals();
+}
+
+/* ─────────────────────────── ZONES ──────────────────────────────── */
+function updateZoneTotals() {
+  const map = {
+    tfsa: 'TFSA', rrsp: 'RRSP', fhsa: 'FHSA', hisa: 'HISA', nonreg: 'Non-Reg'
+  };
+  Object.entries(map).forEach(([z, label]) => {
+    const el = document.getElementById('zone-' + z);
+    if (!el) return;
+    let total = 0;
+    el.querySelectorAll('.h-card').forEach(c => {
+      const h = holdings.find(x => x.id === c.dataset.id);
+      if (h) total += h.value;
+    });
+    const totEl = document.getElementById(z + '-total');
+    if (totEl) totEl.textContent = `Total in ${label}: ${fmtMoney(total)}`;
+  });
+  hideEmptyMsg();
+}
+
+function hideEmptyMsg() {
+  document.querySelectorAll('.account-zone').forEach(zone => {
+    const msg = zone.querySelector('.empty-zone');
+    if (msg) msg.style.display = zone.querySelectorAll('.h-card').length > 0 ? 'none' : 'block';
+  });
+}
+
+/* ─────────────────────────── ANNUAL INVEST ─────────────────────── */
+function annualInvestAmt() {
+  const pct      = parseInt(document.getElementById('investPct').value) || 0;
+  const salary   = parseFloat(document.getElementById('salary').value) || 0;
+  const province = document.getElementById('province').value;
+  // Use cached take-home if available, else rough estimate
+  const net = window._cachedTakeHome || (salary * 0.70);
+  return Math.round(net * pct / 100);
+}
+
+function updateAnnualInvest() {
+  const pct  = parseInt(document.getElementById('investPct').value) || 0;
+  document.getElementById('investPct-val').textContent = pct + '%';
+  const amt  = annualInvestAmt();
+  const el   = document.getElementById('annual-invest-amt');
+  const note = document.getElementById('annual-invest-note');
+  if (pct === 0) {
+    el.textContent   = '—';
+    note.textContent = '(slide to model ongoing contributions)';
+  } else {
+    el.textContent   = fmtMoney(amt);
+    if (document.getElementById('maxTfsaAnnually').checked) {
+      const remainder = Math.max(0, amt - 7000);
+      note.textContent = `total — ~$7,000 of that goes to TFSA first, ${fmtMoney(remainder)} remainder to RRSP or Non-Reg`;
+    } else {
+      note.textContent = 'total invested per year';
+    }
+  }
+}
+
+/* ─────────────────────────── YEARS / RETIREMENT LABEL ──────────── */
+function updateYearsLabel() {
+  const yrs = parseInt(document.getElementById('years').value) || 25;
+  const age = parseInt(document.getElementById('age').value) || 0;
+  document.getElementById('years-val').textContent = yrs + ' yrs';
+  document.getElementById('retire-age-label').textContent = age > 0 ? `age ${age + yrs}` : '';
+}
+
+/* ─────────────────────────── CONTRIBUTION TRACKERS ─────────────── */
+function updateTfsaRoom() {
+  const age      = parseInt(document.getElementById('age').value) || 30;
+  const existing = parseFloat(document.getElementById('existingTfsa').value) || 0;
+  fetch('/tfsa_room', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ age, existing })
+  }).then(r => r.json()).then(data => {
+    const avail = Math.max(0, data.available);
+    const pct   = data.lifetime_room > 0 ? Math.min(100, (existing / data.lifetime_room) * 100) : 0;
+    document.getElementById('tfsa-lifetime-label').textContent = `Lifetime room: ${fmtMoney(data.lifetime_room)}`;
+    document.getElementById('tfsa-avail-label').textContent    = `Available: ${fmtMoney(avail)}`;
+    document.getElementById('tfsa-bar').style.width            = pct + '%';
+    document.getElementById('tfsa-pct').textContent            = pct.toFixed(0) + '% used';
+    document.getElementById('tfsa-room-pill').textContent      = `Room: ${fmtMoney(avail)}`;
+  }).catch(() => {});
+}
+
+function handleTfsaMaxed(checkbox, silentRecalc = false) {
+  const input = document.getElementById('existingTfsa');
+  if (checkbox.checked) {
+    const age      = parseInt(document.getElementById('age').value) || 30;
+    const lifetime = getTfsaLifetimeRoom(age);
+    input.value    = lifetime;
+    input.disabled = true;
+    input.style.opacity = '0.55';
+  } else if (!silentRecalc) {
+    input.value    = 0;
+    input.disabled = false;
+    input.style.opacity = '';
+  }
+  updateTfsaRoom();
+}
+
+function updateRrspRoom() {
+  const age      = parseInt(document.getElementById('age').value) || 30;
+  const salary   = parseFloat(document.getElementById('salary').value) || 0;
+  const existing = parseFloat(document.getElementById('existingRrsp').value) || 0;
+  const known    = parseFloat(document.getElementById('rrspKnownRoom')?.value) || 0;
+  fetch('/rrsp_info', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ age, salary, existing })
+  }).then(r => r.json()).then(data => {
+    const usingKnown = known > 0;
+    const avail      = usingKnown ? known : Math.max(0, data.available);
+    const lifetime   = data.estimated_lifetime;
+    const totalRoom  = usingKnown ? (existing + known) : lifetime;
+    const pct        = totalRoom > 0 ? Math.min(100, (existing / totalRoom) * 100) : 0;
+    const estimateEl = document.getElementById('rrsp-lifetime-label');
+    estimateEl.textContent = `Estimated room: ${fmtMoney(lifetime)}${data.years_eligible ? ' over ' + data.years_eligible + ' yrs' : ''}`;
+    estimateEl.style.display = usingKnown ? 'none' : '';
+    document.getElementById('rrsp-avail-label').textContent    = `Available: ${fmtMoney(avail)}`;
+    document.getElementById('rrsp-bar').style.width            = pct + '%';
+    document.getElementById('rrsp-pct').textContent            = pct.toFixed(0) + '% used';
+    document.getElementById('rrsp-room-pill').textContent      = `Room: ${fmtMoney(avail)}`;
+  }).catch(() => {});
+}
+
+function updateFhsaRoom() {
+  const existing = parseFloat(document.getElementById('existingFhsa').value) || 0;
+  const known    = parseFloat(document.getElementById('fhsaKnownRoom')?.value) || 0;
+  const avail    = known > 0 ? known : Math.max(0, 40000 - existing);
+  const pct      = Math.min(100, (existing / 40000) * 100);
+  const note     = known > 0 ? ' (your exact figure)' : '';
+  document.getElementById('fhsa-avail-label').textContent = `Available: ${fmtMoney(avail)}${note}`;
+  document.getElementById('fhsa-bar').style.width         = pct + '%';
+  document.getElementById('fhsa-pct').textContent         = pct.toFixed(0) + '% used';
+  document.getElementById('fhsa-room-pill').textContent   = `Room: ${fmtMoney(avail)}`;
+}
+
+function updateTakeHome() {
+  const salary   = parseFloat(document.getElementById('salary').value) || 0;
+  const province = document.getElementById('province').value;
+  if (salary <= 0) { document.getElementById('takehome-summary').style.display = 'none'; return; }
+  fetch('/take_home', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ salary, province })
+  }).then(r => r.json()).then(d => {
+    document.getElementById('takehome-summary').style.display = '';
+    document.getElementById('takehome-monthly-label').textContent = `${fmtMoney(d.net_monthly)}/mo`;
+
+    const rows = [
+      ['Gross salary',                   d.gross,             ''],
+      ['Federal income tax',            -d.federal_tax,       'text-danger'],
+      [`${province} provincial tax`,    -d.provincial_tax,    'text-danger'],
+      ['CPP contribution',              -d.cpp,               'text-danger'],
+      d.cpp2 > 0 ? ['CPP2 (enhanced)',  -d.cpp2,              'text-danger'] : null,
+      ['EI premium',                    -d.ei,                'text-danger'],
+    ].filter(Boolean);
+
+    document.getElementById('takehome-rows').innerHTML = rows.map(([label, val, cls]) => `
+      <div class="d-flex justify-content-between ${cls}">
+        <span>${label}</span><span>${val < 0 ? '-' : ''}${fmtMoney(Math.abs(val))}</span>
+      </div>`).join('');
+
+    window._cachedTakeHome = d.net_annual;
+    updateAnnualInvest();
+    document.getElementById('takehome-net-label').textContent =
+      `${fmtMoney(d.net_annual)}/yr  ·  ${fmtMoney(d.net_monthly)}/mo  ·  ${fmtMoney(d.net_biweekly)}/2wk`;
+    document.getElementById('takehome-effective-label').textContent =
+      `Effective rate: ${d.effective_rate}%  ·  Marginal rate: ${d.marginal_rate}%`;
+  }).catch(() => {});
+}
+
+function toggleBuyHome() {
+  const on = document.getElementById('buyHome').checked;
+  document.getElementById('buy-home-details').style.display = on ? '' : 'none';
+  updateFhsaVisibility();
+}
+
+function updateFhsaVisibility() {
+  const buyHome   = document.getElementById('buyHome').checked;
+  const firstTime = document.getElementById('firstTimeBuyer')?.checked ?? false;
+  const zoneOn    = buyHome && firstTime;
+  document.getElementById('fhsa-zone-col').style.display = zoneOn ? '' : 'none';
+  updateFhsaRoom();
+}
+
+/* ─────────────────────────── BUILD PAYLOAD ─────────────────────── */
+function buildHoldingsPayload() {
+  const zones = {
+    'zone-tfsa': 'TFSA', 'zone-rrsp': 'RRSP', 'zone-fhsa': 'FHSA',
+    'zone-hisa': 'HISA', 'zone-nonreg': 'NonReg',
+    'zone-unallocated': null,
+  };
+  const result = [];
+  Object.entries(zones).forEach(([zoneId, account]) => {
+    const el = document.getElementById(zoneId);
+    if (!el) return;
+    el.querySelectorAll('.h-card').forEach(card => {
+      const h = holdings.find(x => x.id === card.dataset.id);
+      if (h) result.push({ ...h, account });
+    });
+  });
+  return result;
+}
+
+/* ─────────────────────────── CALCULATE ─────────────────────────── */
+function calculate() {
+  if (holdings.length === 0) { alert('Please add at least one holding.'); return; }
+
+  const btn = document.querySelector('.calc-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Optimizing…';
+
+  const rrspKnown  = parseFloat(document.getElementById('rrspKnownRoom')?.value) || null;
+  const fhsaKnown  = parseFloat(document.getElementById('fhsaKnownRoom')?.value) || null;
+  const buyHome    = document.getElementById('buyHome').checked;
+  const firstTime  = document.getElementById('firstTimeBuyer')?.checked ?? false;
+  const payload = {
+    userProfile: {
+      age:           parseInt(document.getElementById('age').value),
+      salary:        parseFloat(document.getElementById('salary').value),
+      province:      document.getElementById('province').value,
+      firstTimeBuyer:buyHome && firstTime,
+      existingTfsa:  parseFloat(document.getElementById('existingTfsa').value) || 0,
+      existingRrsp:  parseFloat(document.getElementById('existingRrsp').value) || 0,
+      existingFhsa:  parseFloat(document.getElementById('existingFhsa').value) || 0,
+      rrspKnownRoom: rrspKnown > 0 ? rrspKnown : undefined,
+      fhsaKnownRoom: fhsaKnown > 0 ? fhsaKnown : undefined,
+    },
+    holdings:               buildHoldingsPayload(),
+    years:                  parseInt(document.getElementById('years').value),
+    buyHome,
+    homePrice:              parseFloat(document.getElementById('homePrice')?.value) || 0,
+    homeAppreciation:       parseFloat(document.getElementById('homeAppreciation')?.value) || 5,
+    retirementMarginalRate: document.getElementById('retirementMarginalRate').value || '',
+    annualInvest:           annualInvestAmt(),
+    maxTfsaAnnually:        document.getElementById('maxTfsaAnnually').checked,
+    inflationRate:          parseFloat(document.getElementById('inflationRate').value) || 0.02,
+  };
+
+  fetch('/calculate', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-calculator me-2"></i>Optimize My Portfolio';
+    renderResults(data, parseInt(document.getElementById('years').value));
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-calculator me-2"></i>Optimize My Portfolio';
+    alert('Error: ' + err.message);
+  });
+}
+
+/* ─────────────────────────── RENDER RESULTS ─────────────────────── */
+function renderResults(data, years) {
+  const { result, yearly_data } = data;
+
+  const warnEl = document.getElementById('calc-warnings');
+  if (result.warnings?.length) {
+    warnEl.innerHTML = result.warnings.map(w =>
+      `<div class="alert alert-danger d-flex gap-2 mb-2 py-2"><i class="bi bi-exclamation-triangle-fill"></i><div>${escHtml(w)}</div></div>`
+    ).join('');
+    warnEl.style.display = 'block';
+  } else {
+    warnEl.innerHTML = '';
+    warnEl.style.display = 'none';
+  }
+
+  const totalCurrent = holdings.reduce((s, h) => s + h.value, 0);
+  const finalYear    = yearly_data[yearly_data.length - 1];
+  const projected    = finalYear?.total_aftertax || 0;
+
+  document.getElementById('res-total').textContent    = fmtMoney(totalCurrent);
+  document.getElementById('res-projected').textContent= fmtMoney(projected);
+  document.getElementById('res-marginal').textContent = ((result.marginal_rate || 0) * 100).toFixed(1) + '%';
+  document.getElementById('res-taxsaved').textContent = fmtMoney(result.rrsp_tax_saved || 0);
+
+  renderStrategyComparison(result, years);
+  renderChart(yearly_data, years, result.strategies);
+  renderRecommendations(result.recommendations, years);
+  renderAccountBreakdown(finalYear, years);
+}
+
+function renderStrategyComparison(result, years) {
+  const el   = document.getElementById('strategy-comparison');
+  const cards = document.getElementById('strategy-cards');
+  const sub  = document.getElementById('strategy-subtitle');
+  if (!result.strategies) { el.style.display = 'none'; return; }
+  el.style.display = '';
+
+  const { rrsp, nonreg, best } = result.strategies;
+  const inflation = parseFloat(document.getElementById('inflationRate').value) || 0.02;
+  sub.textContent = `Based on ${fmtMoney(result.annual_invest)}/yr invested over ${years} years. `
+    + `All values in today's dollars (${(inflation*100).toFixed(0)}% inflation). `
+    + `RRSP refunds are reinvested each year.`;
+
+  const strategies = [
+    { key: 'rrsp',   data: rrsp,   icon: '🐷', desc: 'Max TFSA, then RRSP until room is gone — remainder to Non-Reg. RRSP tax refund reinvested each year.' },
+    { key: 'nonreg', data: nonreg, icon: '💼', desc: 'Max TFSA, then everything else into Non-Reg. Capital gains taxed at 50% inclusion rate.' },
+  ];
+
+  const nominalFactor = Math.pow(1 + inflation, years);
+
+  cards.innerHTML = strategies.map(s => {
+    const isBest  = s.key === best;
+    const diff    = s.data.final_aftertax - (s.key === 'rrsp' ? nonreg.final_aftertax : rrsp.final_aftertax);
+    const diffTxt = diff > 0 ? `+${fmtMoney(diff)} vs other` : `${fmtMoney(diff)} vs other`;
+    const nominal = s.data.final_aftertax * nominalFactor;
+    return `
+      <div class="col-md-6">
+        <div class="stat-box" style="border-left: 4px solid ${isBest ? '#16a34a' : '#94a3b8'}; position:relative">
+          ${isBest ? '<span class="badge bg-success" style="position:absolute;top:10px;right:10px;font-size:.7rem">Best Strategy ✓</span>' : ''}
+          <div class="mb-1">${s.icon} <strong>${s.data.label}</strong></div>
+          <div class="stat-value" style="font-size:1.6rem;color:${isBest ? '#16a34a' : '#64748b'}">${fmtMoney(s.data.final_aftertax)}</div>
+          <div class="stat-label">after-tax at retirement (today's $)</div>
+          <div class="text-muted small">${fmtMoney(nominal)} in future dollars</div>
+          <div class="small mt-1 ${diff > 0 ? 'text-success' : 'text-muted'}">${diffTxt}</div>
+          <div class="text-muted small mt-2">${s.desc}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('chart-strategy-label').textContent =
+    `(showing ${best === 'rrsp' ? rrsp.label : nonreg.label})`;
+
+  document.getElementById('strategy-note').innerHTML =
+    `<i class="bi bi-info-circle me-1"></i>`
+    + `<strong>Today's dollars</strong> = your retirement wealth measured in today's purchasing power — the number you can relate to now. `
+    + `<strong>Future dollars</strong> = the literal balance on your account statement, which looks bigger but each dollar buys less because prices will also be ~${Math.round((nominalFactor - 1) * 100)}% higher by then.`;
+}
+
+function renderChart(yearly_data, years, strategies) {
+  const accountColors = {
+    TFSA: '#2563eb', RRSP: '#16a34a', FHSA: '#ea580c',
+    HISA: '#0891b2', NonReg: '#6b7280', Home: '#92400e'
+  };
+  const accountNames = {
+    TFSA: 'TFSA', RRSP: 'RRSP', FHSA: 'FHSA',
+    HISA: 'HISA / Savings', NonReg: 'Non-Registered', Home: 'Home (PRE)'
+  };
+  const accounts = [...new Set(yearly_data.flatMap(y => Object.keys(y.accounts || {})))];
+
+  const datasets = [
+    {
+      label: 'Total After-Tax Value',
+      data: yearly_data.map(y => y.total_aftertax),
+      borderColor: '#1e3a5f', backgroundColor: 'rgba(30,58,95,.08)',
+      borderWidth: 2.5, fill: true, tension: 0.4,
+    },
+    ...accounts.map(acct => ({
+      label: accountNames[acct] || acct,
+      data: yearly_data.map(y => y.accounts?.[acct]?.aftertax || 0),
+      borderColor: accountColors[acct] || '#999',
+      borderWidth: 1.5, borderDash: [5, 3], fill: false, tension: 0.4, pointRadius: 0,
+    }))
+  ];
+
+  if (growthChart) growthChart.destroy();
+  growthChart = new Chart(document.getElementById('growthChart').getContext('2d'), {
+    type: 'line',
+    data: { labels: yearly_data.map(y => 'Yr ' + y.year), datasets },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtMoney(ctx.parsed.y)}` } }
+      },
+      scales: { y: { ticks: { callback: v => fmtMoneyShort(v) }, title: { display: true, text: "Today's dollars (inflation-adjusted)" , font: {size:10}, color:'#94a3b8' } } }
+    }
+  });
+}
+
+function renderRecommendations(recs, years) {
+  const tbody = document.getElementById('rec-tbody');
+  tbody.innerHTML = '';
+  if (!recs?.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-center">No holdings to display.</td></tr>';
+    return;
+  }
+
+  const order = ['TFSA','FHSA','RRSP','HISA','NonReg'];
+  recs.sort((a, b) => (order.indexOf(a.account) - order.indexOf(b.account)) || b.value - a.value);
+
+  const acctFullLabels = { TFSA:'TFSA', FHSA:'FHSA', RRSP:'RRSP', NonReg:'Non-Reg', HISA:'HISA' };
+
+  recs.forEach(r => {
+    const acct    = r.account || 'NonReg';
+    const acctKey = acct.toLowerCase();
+    const isRec   = r.recommended && !r.locked;
+    const tr      = document.createElement('tr');
+    tr.className  = `rec-row-${acctKey}`;
+
+    tr.innerHTML = `
+      <td>
+        <span class="me-2">${ASSET_ICONS[r.type] || '📦'}</span>
+        <strong>${escHtml(r.name)}</strong>
+        ${r.split ? '<span class="badge bg-secondary ms-1" style="font-size:.65rem">split</span>' : ''}
+      </td>
+      <td><span class="text-muted small">${r.type}</span></td>
+      <td class="text-end fw-semibold">${fmtMoney(r.value)}</td>
+      <td><span class="text-success small">▲ ${r.expectedReturn}%</span></td>
+      <td>
+        <span class="acct-badge badge-${acctKey}">${ACCT_LABELS[acct] || acct}</span>
+        ${r.tax_refund ? '<span class="badge ms-1" style="font-size:.65rem;background:#7c3aed">Tax Refund</span>' : ''}
+        ${isRec && !r.tax_refund ? '<span class="badge bg-success ms-1" style="font-size:.65rem">Recommended</span>' : ''}
+        ${!isRec && r.account && !r.tax_refund ? '<span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">Locked</span>' : ''}
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderAccountBreakdown(finalYear, years) {
+  const container  = document.getElementById('acct-breakdown');
+  container.innerHTML = '';
+  if (!finalYear) return;
+
+  const acctLabels = { TFSA:'TFSA', RRSP:'RRSP', FHSA:'FHSA', HISA:'HISA / Savings', NonReg:'Non-Registered', Home:'Home (PRE)' };
+  const acctIcons  = { TFSA:'🛡️', RRSP:'🐷', FHSA:'🏡', HISA:'🏦', NonReg:'💼', Home:'🏠' };
+  const acctColors = {
+    TFSA:'var(--tfsa)', RRSP:'var(--rrsp)', FHSA:'var(--fhsa)',
+    HISA:'var(--hisa)', NonReg:'var(--nonreg)', Home:'var(--reale)'
+  };
+
+  Object.entries(finalYear.accounts || {}).forEach(([acct, vals]) => {
+    if (!vals.aftertax) return;
+    const gain    = vals.aftertax - vals.original;
+    const gainPct = vals.original > 0 ? ((gain / vals.original) * 100).toFixed(0) : 0;
+    const col     = document.createElement('div');
+    col.className = 'col-md-4 col-6';
+    col.innerHTML = `
+      <div class="stat-box" style="border-left: 4px solid ${acctColors[acct] || '#999'}">
+        <div class="mb-1">${acctIcons[acct] || '📦'} <strong>${acctLabels[acct] || acct}</strong></div>
+        <div class="stat-value" style="font-size:1.3rem; color:${acctColors[acct] || '#333'}">${fmtMoney(vals.aftertax)}</div>
+        <div class="stat-label">After-tax in ${years} yrs</div>
+        <div class="small text-muted mt-1">Started: ${fmtMoney(vals.original)} · Gain: +${gainPct}%</div>
+      </div>`;
+    container.appendChild(col);
+  });
+}
+
+
+/* ─────────────────────────── HELPERS ────────────────────────────── */
+function fmtMoney(n) {
+  return '$' + Math.round(n ?? 0).toLocaleString('en-CA');
+}
+function fmtMoneyShort(n) {
+  if (n >= 1_000_000) return '$' + (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000)     return '$' + (n / 1_000).toFixed(0) + 'K';
+  return '$' + n.toFixed(0);
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
